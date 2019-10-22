@@ -1,11 +1,13 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+import redis
+from ui import event
 
 
 class LoginWindow(Gtk.Window):
 
-    def __init__(self):
+    def __init__(self, callback):
         super().__init__(title="Mega Chat | Login")
         self.is_login = False
         self.is_password = False
@@ -64,33 +66,43 @@ class LoginWindow(Gtk.Window):
     def on_registration(self, button):
         pass
 
+    @event.Event.origin("login", post=True)
     def on_sign_in(self, button):
-        login = self.login.get_text()
-        password = self.password.get_text()
-        print(login, password)
+        storage = redis.StrictRedis()
+        self.storage.set("login", self.login.get_text())
+        self.storage.set("password", self.password.get_text())
+        storage.expire("login", 10)
+        storage.expire("password", 10)
+        # login = self.login.get_text()
+        # password = self.password.get_text()
+        # print(login, password)
 
-    def __check_entry(self, entry, name):
-        if len(entry.get_text()) > 2:
-            if name == "login":
-                self.is_login = True
-            if name == "password":
-                self.is_password = True
-        else:
-            if name == "login":
-                self.is_login = False
-            if name == "password":
-                self.is_password = False
-        if self.is_login and self.is_password:
-            self.sign_in.set_sensitive(True)
-        else:
-            self.sign_in.set_sensitive(False)
+    # def __check_entry(self,):
+        # if len(entry.get_text()) > 2:
+        #     if name == "login":
+        #         self.is_login = True
+        #     if name == "password":
+        #         self.is_password = True
+        # else:
+        #     if name == "login":
+        #         self.is_login = False
+        #     if name == "password":
+        #         self.is_password = False
+        # if self.is_login and self.is_password:
+        #     self.sign_in.set_sensitive(True)
+        # else:
+        #     self.sign_in.set_sensitive(False)
+
+
 
 
     def on_change_login(self, entry):
-        self.__check_entry(entry, "login")
+        self.is_login = True if len(entry.get_text()) > 2 else False
+        self.sign_in.set_sensitive(self.is_login and self.is_password)
 
     def on_change_password(self, entry):
-        self.__check_entry(entry, "password")
+        self.is_password = True if len(entry.get_text()) > 2 else False
+        self.sign_in.set_sensitive(self.is_login and self.is_password)
 
 
 
