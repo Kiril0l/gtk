@@ -33,7 +33,7 @@ class ChatWindow(Gtk.Window):
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
             filename = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
-                "gtk_image_my_avatar.jpg"
+                "Avatar.png"
             ),
             width = 190,
             height = 190,
@@ -71,40 +71,11 @@ class ChatWindow(Gtk.Window):
         scroll_box.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         center_box.pack_start(scroll_box, True, True, 5)
 
-        chat_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        scroll_box.add(chat_box)
+        self.chat_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        scroll_box.add(self.chat_box)
         separator = Gtk.HSeparator()
         center_box.pack_start(separator, False, False, 5)
 
-        input_message = Gtk.Frame()
-        chat_box.pack_start(input_message, False, True, 5)
-        message_box = Gtk.Box()
-        input_message.add(message_box)
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-            filename = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "gtk_image_my_avatar.jpg"
-            ),
-            width = 100,
-            height = 100,
-            preserve_aspect_ratio=True,
-        )
-        input_avatar = Gtk.Image.new_from_pixbuf(pixbuf)
-        message_box.pack_start(input_avatar, False, True, 5)
-        message_box.pack_start(
-            Gtk.Label(
-                label = "dsaaaaaaaaaaaaaaaaaaaaaaaaaa\n\
-                saddddddddddddddddddddddddddddd\n\
-                sadddddddddddddddddddddddddddddddddddd\n\
-                dfsssssss"
-            ), True, False, 5
-        )
-
-        chat_box.pack_start(input_message, False, True, 5)
-
-
-        # output_message = Gtk.Frame()
-        # chat_box.pack_start(output_message, False, True, 5)
 
         send_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         send_box.set_spacing(5)
@@ -125,7 +96,53 @@ class ChatWindow(Gtk.Window):
 
         favorit_label = Gtk.Label(label="Избранное")
         right_box.pack_start(favorit_label, False, True, 5)
+
+
+        test_input = {
+            "message": (
+                "Компиля́ция — сборка программы, включающая трансляцию всех модулей программы, "
+                "написанных на одном или нескольких исходных языках программирования высокого "
+                "уровня и/или языке ассемблера, в эквивалентные программные модули на "
+                "низкоуровневом языке, близком машинному коду"
+            ),
+            "user": "Vasia"
+        }
+
+        test_output = {
+            "message": (
+                "Инициализация — создание, активация, подготовка к работе, определение параметров. " "Приведение программы или устройства в состояние готовности к использованию. "
+            ),
+            "user": "User"
+        }
+        self.__add_message_box(test_input)
+        self.__add_message_box(test_output, False)
+
         self.show_all()
+
+    def __add_message_box(self, data, input=True):
+        message_frame = Gtk.Frame()
+        message_box = Gtk.Box()
+        message_frame.add(message_box)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+            filename = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                f".contacts/{data['user']}.png" if input
+                else "Avatar.png"
+            ),
+            width = 100,
+            height = 100,
+            preserve_aspect_ratio=True,
+        )
+        avatar = Gtk.Image.new_from_pixbuf(pixbuf)
+        message_box.pack_start(avatar, False, True, 5)
+        text_label = Gtk.Label()
+        text_label.set_markup(data["message"])
+        text_label.set_selectable(True)
+        text_label.set_line_wrap(True)
+        if not input:
+            text_label.set_justify(Gtk.Justification.RIGHT)
+        message_box.pack_end(text_label, True, False, 5)
+        self.chat_box.pack_start(message_frame, False, True, 5)
 
 
 
@@ -143,6 +160,8 @@ class ChatWindow(Gtk.Window):
         else:
             self.__create_conntection()
             self.show_all()
+
+
 
 HOST = "127.0.0.1"
 PORT = 5000
