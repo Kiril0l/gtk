@@ -7,12 +7,18 @@ import select
 import json
 import os
 import redis
+from ui import event
+
+HOST = "127.0.0.1"
+PORT = 5000
+
 
 class ChatWindow(Gtk.Window):
     def __init__(self):
         super().__init__(title="Mega Chat | Chat")
-        # self.login_win = login.show_all(self.regy_date)
-        # self.login_win.show_all()
+        event.Event(name="login", callback=self.regy_date)
+        self.login_win = login.LoginWindow()
+        self.login_win.show_all()
         self.connection = None
         self.__interfase()
 
@@ -98,26 +104,31 @@ class ChatWindow(Gtk.Window):
         right_box.pack_start(favorit_label, False, True, 5)
 
 
-        test_input = {
-            "message": (
-                "Компиля́ция — сборка программы, включающая трансляцию всех модулей программы, "
-                "написанных на одном или нескольких исходных языках программирования высокого "
-                "уровня и/или языке ассемблера, в эквивалентные программные модули на "
-                "низкоуровневом языке, близком машинному коду"
-            ),
-            "user": "Vasia"
-        }
+        # test_input = {
+        #     "message": (
+        #         "Компиля́ция — сборка программы, включающая трансляцию всех модулей программы, "
+        #         "написанных на одном или нескольких исходных языках программирования высокого "
+        #         "уровня и/или языке ассемблера, в эквивалентные программные модули на "
+        #         "низкоуровневом языке, близком машинному коду"
+        #     ),
+        #     "user": "Vasia"
+        # }
+        #
+        # test_output = {
+        #     "message": (
+        #         "Инициализация — создание, активация, подготовка к работе, определение параметров. " "Приведение программы или устройства в состояние готовности к использованию. "
+        #     ),
+        #     "user": "User"
+        # }
+        # self.__add_message_box(test_input)
+        # self.__add_message_box(test_output, False)
+        # self.__add_message_box(test_input)
+        # self.__add_message_box(test_input)
+        # self.__add_message_box(test_output, False)
+        # self.__add_message_box(test_output, False)
+        # self.__add_message_box(test_input)
+        # self.__add_message_box(test_output, False)
 
-        test_output = {
-            "message": (
-                "Инициализация — создание, активация, подготовка к работе, определение параметров. " "Приведение программы или устройства в состояние готовности к использованию. "
-            ),
-            "user": "User"
-        }
-        self.__add_message_box(test_input)
-        self.__add_message_box(test_output, False)
-
-        self.show_all()
 
     def __add_message_box(self, data, input=True):
         message_frame = Gtk.Frame()
@@ -134,25 +145,24 @@ class ChatWindow(Gtk.Window):
             preserve_aspect_ratio=True,
         )
         avatar = Gtk.Image.new_from_pixbuf(pixbuf)
-        message_box.pack_start(avatar, False, True, 5)
         text_label = Gtk.Label()
         text_label.set_markup(data["message"])
         text_label.set_selectable(True)
         text_label.set_line_wrap(True)
-        if not input:
+        if input:
+            message_box.pack_start(avatar, False, True, 5)
+        else:
             text_label.set_justify(Gtk.Justification.RIGHT)
-        message_box.pack_end(text_label, True, False, 5)
+            message_box.pack_end(avatar, False, True, 5)
+        message_box.pack_start(text_label, True, False, 5)
         self.chat_box.pack_start(message_frame, False, True, 5)
 
-
-
-
-    def regy_date(self):
-        self.login.hide()
+    def regy_date(self, *args, **kwargs):
+        self.login_win.hide()
         storage = redis.StrictRedis()  #подключаемся к мем кэшу. ссылка на доступ к базе данных
         try:
-            self.login = storage.get("login")
-            self.password = storage.get("password")
+            self.login_win = str(storage.get("login"))
+            self.password = str(storage.get("password"))
         except:
             redis.RedisError
             print("Данных почемуто нет")
@@ -163,22 +173,20 @@ class ChatWindow(Gtk.Window):
 
 
 
-HOST = "127.0.0.1"
-PORT = 5000
 
 def __create_conntection(self):
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # self.sock.setblocking(0)
     self.sock.connect((HOST,PORT))
-    data = json.dumps({"login": self.login, "password": self.password})
-    self.connection.send(data.encode("utf-8"))
     result = self.connection.recv(2048)
     data = json.load(result.decode("utf-8")) #преобразуем строку обратно в объект при помощи лоад
     if data.get("status") != "OK":
         print(data.get("message"))
         Gtk.main_quit()
     else:
+        data = json.dumps({"login": self.login, "password": self.password})
+        self.connection.send(data.encode("utf-8"))
         self.__run()
 
 
